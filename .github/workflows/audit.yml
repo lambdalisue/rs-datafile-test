@@ -1,0 +1,35 @@
+name: Audit
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  security_audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Update local toolchain
+        run: |
+          rustup update
+          cargo install --force cargo-audit
+      - name: Toolchain info
+        run: |
+          rustc --version
+          cargo --version --verbose
+          cargo audit --version
+      - name: Audit check
+        run: |
+          cargo audit
